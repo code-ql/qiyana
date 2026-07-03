@@ -1,0 +1,58 @@
+﻿# Reference project (not part of this repo)
+**/LeagueAkari*/
+
+dist-small/
+.opencode/
+openspec/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+*.pnplist
+*.backup
+*.publishsettings
+*.publishxml
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# NuGet
+packages/
+*.nuget.props
+*.nuget.targets
+nuget.config
+NuGet.config
+
+# Roslyn
+*.pdb
+*.dll
+*.exe
+
+# User-specific
+*.userprefs
+
+# Apple files
+.DS_Store
+Thumbs.db
+
+# Dist/publish
+dist/
+publish/
