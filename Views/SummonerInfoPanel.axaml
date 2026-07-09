@@ -1,0 +1,172 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="using:qiyana.Converters"
+             xmlns:models="using:qiyana.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="120"
+             x:Class="qiyana.Views.SummonerInfoPanel"
+             x:DataType="models:SummonerInfo">
+    <UserControl.Resources>
+        <conv:LcuAssetConverter x:Key="LcuAsset"/>
+        <conv:IsNotNullConverter x:Key="IsNotNull"/>
+        <conv:IsNullConverter x:Key="IsNull"/>
+        <conv:PercentToRingGeometryConverter x:Key="PercentToRing"/>
+    </UserControl.Resources>
+
+    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="16">
+        <!-- Col 0: Avatar with StreamGeometry progress ring -->
+        <Grid Width="88" Height="88" VerticalAlignment="Center">
+            <Path Stroke="#3a3a5c" StrokeThickness="4"
+                  Data="M 0,0 L 80,0 L 80,80 L 0,80 Z"
+                  Stretch="None" StrokeLineCap="Square"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Path Stroke="{Binding TierColor}" StrokeThickness="4"
+                  Data="{Binding PercentCompleteForNextLevel, Converter={StaticResource PercentToRing}}"
+                  Stretch="None" StrokeLineCap="Square"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Border Margin="4" Background="#3a3a5c" ClipToBounds="True"
+                    Width="72" Height="72"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Image Source="{Binding ProfileIconPath, Converter={StaticResource LcuAsset}}"
+                       Stretch="UniformToFill"/>
+            </Border>
+
+        </Grid>
+
+        <!-- Col 1: Info: Puuid, GameName#TagLine, Level, Privacy -->
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+            <TextBlock Text="{Binding Name}"
+                       FontSize="20" FontWeight="Bold" Foreground="White"/>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Foreground="#aaa" FontSize="11" VerticalAlignment="Center">
+                    <Run Text="{Binding GameName}"/>
+                    <Run Text="#"/>
+                    <Run Text="{Binding TagLine}"/>
+                </TextBlock>
+                <Border Padding="4,2" Background="#3a3a5c" CornerRadius="3"
+                        PointerPressed="OnCopyRiotIdPointerPressed">
+                    <TextBlock Text="复制" Foreground="#aaa" FontSize="10"/>
+                </Border>
+            </StackPanel>
+            <TextBlock Foreground="#aaa" FontSize="11">
+                <Run Text="Level "/>
+                <Run Text="{Binding SummonerLevel}"/>
+            </TextBlock>
+            <TextBlock Foreground="#888" FontSize="10"
+                       IsVisible="{Binding Privacy, Converter={StaticResource IsNotNull}}">
+                <Run Text="Privacy: "/>
+                <Run Text="{Binding Privacy}"/>
+            </TextBlock>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Foreground="#666" FontSize="10" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" MaxWidth="260"
+                           ToolTip.Tip="{Binding Puuid}">
+                    <Run Text="PUUID: "/>
+                    <Run Text="{Binding Puuid}"/>
+                </TextBlock>
+                <Border Padding="4,2" Background="#3a3a5c" CornerRadius="3"
+                        PointerPressed="OnCopyPuuidPointerPressed">
+                    <TextBlock Text="复制" Foreground="#aaa" FontSize="10"/>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Col 2: Spring spacer -->
+        <Border Grid.Column="2"/>
+
+        <!-- Col 3: Solo queue -->
+        <Border Grid.Column="3"
+                IsVisible="{Binding SoloQueue, Converter={StaticResource IsNotNull}}"
+                Padding="10,8">
+            <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
+                <Border Width="64" Height="64"
+                         Background="#3a3a5c" ClipToBounds="True"
+                         VerticalAlignment="Center">
+                    <Image Source="{Binding SoloQueue.EmblemPath, Converter={StaticResource LcuAsset}}"
+                           Width="64" Height="64" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Foreground="#888" FontSize="10" Text="SOLO"/>
+                    <TextBlock Foreground="{Binding TierColor}" FontSize="13" FontWeight="Bold">
+                        <Run Text="{Binding SoloQueue.TierDisplayName}"/>
+                        <Run Text=" "/>
+                        <Run Text="{Binding SoloQueue.Rank}"/>
+                    </TextBlock>
+                    <TextBlock Foreground="#ccc" FontSize="11">
+                        <Run Text="{Binding SoloQueue.LeaguePoints}"/>
+                        <Run Text=" LP"/>
+                    </TextBlock>
+                    <TextBlock Foreground="#aaa" FontSize="11">
+                        <Run Text="{Binding SoloQueue.Wins}"/>
+                        <Run Text="W  "/>
+                        <Run Text="{Binding SoloQueue.Losses}"/>
+                        <Run Text="L"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Col 4: Flex queue -->
+        <Border Grid.Column="4"
+                IsVisible="{Binding FlexQueue, Converter={StaticResource IsNotNull}}"
+                Padding="10,8">
+            <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
+                <Border Width="64" Height="64"
+                         Background="#3a3a5c" ClipToBounds="True"
+                         VerticalAlignment="Center">
+                    <Image Source="{Binding FlexQueue.EmblemPath, Converter={StaticResource LcuAsset}}"
+                           Width="64" Height="64" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Foreground="#888" FontSize="10" Text="FLEX"/>
+                    <TextBlock Foreground="{Binding FlexQueue.TierColor}" FontSize="13" FontWeight="Bold">
+                        <Run Text="{Binding FlexQueue.TierDisplayName}"/>
+                        <Run Text=" "/>
+                        <Run Text="{Binding FlexQueue.Rank}"/>
+                    </TextBlock>
+                    <TextBlock Foreground="#ccc" FontSize="11">
+                        <Run Text="{Binding FlexQueue.LeaguePoints}"/>
+                        <Run Text=" LP"/>
+                    </TextBlock>
+                    <TextBlock Foreground="#aaa" FontSize="11">
+                        <Run Text="{Binding FlexQueue.Wins}"/>
+                        <Run Text="W  "/>
+                        <Run Text="{Binding FlexQueue.Losses}"/>
+                        <Run Text="L"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Col 5: Highest tier -->
+        <Border Grid.Column="5" VerticalAlignment="Center"
+                IsVisible="{Binding HighestTier, Converter={StaticResource IsNotNull}}"
+                Padding="10,8">
+            <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
+                <Border Width="64" Height="64"
+                         Background="#3a3a5c" ClipToBounds="True"
+                         VerticalAlignment="Center">
+                    <Image Source="{Binding HighestRankedEmblemPath, Converter={StaticResource LcuAsset}}"
+                           Width="64" Height="64" Stretch="UniformToFill"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Foreground="#888" FontSize="10" Text="最高段位"/>
+                    <TextBlock Foreground="{Binding HighestTierColor}" FontSize="13" FontWeight="Bold">
+                        <Run Text="{Binding HighestTierDisplayName}"/>
+                        <Run Text=" "/>
+                        <Run Text="{Binding HighestRank}"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- No ranked data fallback -->
+        <Border Grid.Column="3" Grid.ColumnSpan="3"
+                IsVisible="{Binding HasNoRankedData}"
+                Padding="10,8">
+            <TextBlock Foreground="#888" FontSize="13" VerticalAlignment="Center"
+                       Text="暂无排位记录"/>
+        </Border>
+    </Grid>
+</UserControl>

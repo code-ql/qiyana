@@ -1,0 +1,508 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:matchdata="using:qiyana.Models.MatchData"
+             xmlns:conv="using:qiyana.Converters"
+             xmlns:local="using:qiyana.Views"
+             x:Class="qiyana.Views.ScoreboardPanel"
+             x:CompileBindings="False">
+    <UserControl.Resources>
+        <conv:BytesToBitmapConverter x:Key="BytesToBitmap"/>
+        <conv:IsNotNullConverter x:Key="IsNotNull"/>
+        <conv:IsNullConverter x:Key="IsNull"/>
+        <conv:InvertBoolConverter x:Key="InvertBool"/>
+        <conv:WinToTextConverter x:Key="WinToText"/>
+        <conv:WinToForegroundConverter x:Key="WinToForeground"/>
+        <conv:DoubleToGridLengthConverter x:Key="DoubleToGridLength"/>
+        <conv:SecondsToDurationConverter x:Key="SecondsToDuration"/>
+
+        <DataTemplate x:Key="ScoreboardRow" x:DataType="matchdata:Participant"
+                      x:CompileBindings="False">
+            <Border Padding="4,2"
+                    BorderBrush="#3a3a5c" BorderThickness="1" ClipToBounds="True"
+                    PointerPressed="OnScoreboardRowPointerPressed">
+                <Grid ColumnDefinitions="36,4,140,4,80,4,56,4,64,4,60,4,Auto,8,*">
+                    <Border Width="36" Height="36" Background="#15152e"
+                            ClipToBounds="True" VerticalAlignment="Center">
+                        <Image Source="{Binding ChampionIcon, Converter={StaticResource BytesToBitmap}}"
+                               Width="36" Height="36" Stretch="UniformToFill"/>
+                    </Border>
+                    <Border Grid.Column="2" Background="Transparent"
+                            PointerPressed="OnPlayerNamePointerPressed"
+                            Cursor="Hand" VerticalAlignment="Center">
+                        <StackPanel Width="140">
+                            <TextBlock Text="{Binding SummonerFullName}" Foreground="#bbb" FontSize="12"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding MultiKillLabel}" Foreground="#ff6b6b" FontSize="9" FontWeight="Normal"
+                                       IsVisible="{Binding HasMultiKill}"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Grid.Column="4" VerticalAlignment="Center" Width="80" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Stats.Kills}" Foreground="{Binding KillsForeground}" FontSize="13"/>
+                            <TextBlock Text="/" Foreground="#555" FontSize="13"/>
+                            <TextBlock Text="{Binding Stats.Deaths}" Foreground="{Binding DeathsForeground}" FontSize="13"/>
+                            <TextBlock Text="/" Foreground="#555" FontSize="13"/>
+                            <TextBlock Text="{Binding Stats.Assists}" Foreground="{Binding AssistsForeground}" FontSize="13"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding KdaText}" Foreground="#666" FontSize="10" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="6" VerticalAlignment="Center" Width="56" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding TotalCs}" Foreground="{Binding CsForeground}" FontSize="12" HorizontalAlignment="Center"/>
+                        <TextBlock Foreground="#666" FontSize="10" HorizontalAlignment="Center">
+                            <Run Text="{Binding CsPerMin, StringFormat={}{0:F1}}"/>
+                            <Run Text="/分"/>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Column="8" VerticalAlignment="Center" Width="70" HorizontalAlignment="Center">
+                        <TextBlock Text="承伤" Foreground="#666" FontSize="9" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding DamageTakenFormatted}" Foreground="{Binding DamageTakenForeground}" FontSize="11" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="10" VerticalAlignment="Center" Width="64" HorizontalAlignment="Center">
+                        <TextBlock Foreground="{Binding VisionForeground}" FontSize="11" HorizontalAlignment="Center" Text="{Binding Stats.VisionScore}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding Stats.WardsPlaced}" Foreground="#666" FontSize="9"/>
+                            <TextBlock Text="/" Foreground="#555" FontSize="9"/>
+                            <TextBlock Text="{Binding Stats.WardsKilled}" Foreground="#666" FontSize="9"/>
+                            <TextBlock Text="|" Foreground="#555" FontSize="9"/>
+                            <TextBlock Text="{Binding Stats.VisionWardsBoughtInGame}" Foreground="#aaa" FontSize="9"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="12" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,4,0">
+                            <Border Width="18" Height="18" Background="#15152e"
+                                    ToolTip.Tip="{Binding PrimaryStyleName}">
+                                <Image Source="{Binding KeystoneRuneIcon, Converter={StaticResource BytesToBitmap}}"
+                                       Width="18" Height="18"/>
+                            </Border>
+                            <Border Width="18" Height="18" Background="#15152e"
+                                    ToolTip.Tip="{Binding SecondaryStyleName}">
+                                <Image Source="{Binding SecondaryStyleIcon, Converter={StaticResource BytesToBitmap}}"
+                                       Width="18" Height="18"/>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="0" Margin="0,0,6,0">
+                            <Border Width="18" Height="18" Background="#15152e" ToolTip.Tip="{Binding Spell1Id}">
+                                <Image Source="{Binding Spell1Icon, Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                            </Border>
+                            <Border Width="18" Height="18" Background="#15152e" ToolTip.Tip="{Binding Spell2Id}">
+                                <Image Source="{Binding Spell2Icon, Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                            </Border>
+                        </StackPanel>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item0, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[0], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item1, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[1], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item2, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[2], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item3, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[3], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item4, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[4], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item5, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[5], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                        <Border Width="18" Height="18" Background="#15152e"
+                                IsVisible="{Binding Stats.Item6, Converter={StaticResource IsNotNull}}">
+                            <Image Source="{Binding ItemIcons[6], Converter={StaticResource BytesToBitmap}}" Width="18" Height="18"/>
+                        </Border>
+                    </StackPanel>
+                    <ProgressBar Grid.Column="14" Value="{Binding DamagePercent}" Minimum="0" Maximum="1"
+                                 Height="6" HorizontalAlignment="Stretch" Margin="0,4" MinWidth="0"
+                                 Foreground="#cc6666" Background="#2a2a3e" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid ColumnDefinitions="7*,3*">
+        <!-- Col 0: Scoreboard -->
+        <Border Grid.Column="0" Margin="0,0,8,0">
+            <Grid RowDefinitions="Auto,*,Auto,*">
+                <!-- Blue team header -->
+                <Border Grid.Row="0" Margin="0,4,0,2"
+                        Background="#0d0d1e" BorderBrush="#1e3a5f" BorderThickness="1" ClipToBounds="True">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Left" Width="5" Background="#4a9eff"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="3"
+                                    VerticalAlignment="Center" Margin="0,0,12,0">
+                            <ItemsControl ItemsSource="{Binding Teams[0].BansSorted}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="3"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="matchdata:Ban">
+                                        <Border Width="20" Height="20" Background="#15152e" ClipToBounds="True">
+                                            <Image Source="{Binding ChampionIcon, Converter={StaticResource BytesToBitmap}}"
+                                                   Width="20" Height="20" Stretch="UniformToFill"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center" Margin="12,8,8,8">
+                            <StackPanel VerticalAlignment="Center" MinWidth="52">
+                                <Border Padding="5,1" Background="Transparent" IsVisible="{Binding TeamBlueIsWin}">
+                                    <TextBlock Text="胜利" FontSize="18" Foreground="#4caf50" FontWeight="Bold"/>
+                                </Border>
+                                <Border Padding="5,1" Margin="0,0,0,0" Background="Transparent"
+                                        IsVisible="{Binding TeamBlueIsWin, Converter={StaticResource InvertBool}}">
+                                    <TextBlock Text="失败" FontSize="18" Foreground="#ff4a4a" FontWeight="Bold"/>
+                                </Border>
+                            </StackPanel>
+                            <Border Width="1" Background="#2a2a3e" Margin="12,4"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="12,0">
+                                <TextBlock Text="{Binding TeamBlueTotalKills}" FontSize="22"
+                                           FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="击杀" FontSize="10" Foreground="#555" VerticalAlignment="Bottom" Margin="0,0,0,3"/>
+                            </StackPanel>
+                            <Border Width="1" Background="#2a2a3e" Margin="0,4"/>
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center" Margin="12,0">
+                                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Teams[0].TowerKills}" FontSize="14" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="塔" FontSize="9" Foreground="#555" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Teams[0].DragonKills}" FontSize="14" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="小龙" FontSize="9" Foreground="#555" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Teams[0].BaronKills}" FontSize="14" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="大龙" FontSize="9" Foreground="#555" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Border Width="1" Background="#2a2a3e" Margin="0,4"/>
+                            <WrapPanel Orientation="Horizontal" Margin="12,0" VerticalAlignment="Center">
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[0].FirstBlood}"><TextBlock Text="一血" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[0].FirstTower}"><TextBlock Text="一塔" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[0].FirstInhibitor}"><TextBlock Text="首水晶" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[0].FirstBaron}"><TextBlock Text="首大龙" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[0].FirstDragon}"><TextBlock Text="首小龙" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                            </WrapPanel>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Grid Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding TeamBlue}"
+                                  ItemTemplate="{StaticResource ScoreboardRow}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <local:EqualHeightPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+
+                <!-- Red team header -->
+                <Border Grid.Row="2" Margin="0,4,0,2"
+                        Background="#0d0d1e" BorderBrush="#5f1e1e" BorderThickness="1" ClipToBounds="True">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Left" Width="5" Background="#ff4a4a"/>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="3"
+                                    VerticalAlignment="Center" Margin="0,0,12,0">
+                            <ItemsControl ItemsSource="{Binding Teams[1].BansSorted}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="3"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="matchdata:Ban">
+                                        <Border Width="20" Height="20" Background="#15152e" ClipToBounds="True">
+                                            <Image Source="{Binding ChampionIcon, Converter={StaticResource BytesToBitmap}}"
+                                                   Width="20" Height="20" Stretch="UniformToFill"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center" Margin="12,8,8,8">
+                            <StackPanel VerticalAlignment="Center" MinWidth="52">
+                                <Border Padding="5,1" Background="Transparent" IsVisible="{Binding TeamRedIsWin}">
+                                    <TextBlock Text="胜利" FontSize="18" Foreground="#4caf50" FontWeight="Bold"/>
+                                </Border>
+                                <Border Padding="5,1" Margin="0,0,0,0" Background="Transparent"
+                                        IsVisible="{Binding TeamRedIsWin, Converter={StaticResource InvertBool}}">
+                                    <TextBlock Text="失败" FontSize="18" Foreground="#ff4a4a" FontWeight="Bold"/>
+                                </Border>
+                            </StackPanel>
+                            <Border Width="1" Background="#2a2a3e" Margin="12,4"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="12,0">
+                                <TextBlock Text="{Binding TeamRedTotalKills}" FontSize="22"
+                                           FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="击杀" FontSize="10" Foreground="#555" VerticalAlignment="Bottom" Margin="0,0,0,3"/>
+                            </StackPanel>
+                            <Border Width="1" Background="#2a2a3e" Margin="0,4"/>
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center" Margin="12,0">
+                                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Teams[1].TowerKills}" FontSize="14" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="塔" FontSize="9" Foreground="#555" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Teams[1].DragonKills}" FontSize="14" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="小龙" FontSize="9" Foreground="#555" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Teams[1].BaronKills}" FontSize="14" FontWeight="SemiBold" Foreground="#ccc" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="大龙" FontSize="9" Foreground="#555" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Border Width="1" Background="#2a2a3e" Margin="0,4"/>
+                            <WrapPanel Orientation="Horizontal" Margin="12,0" VerticalAlignment="Center">
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[1].FirstBlood}"><TextBlock Text="一血" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[1].FirstTower}"><TextBlock Text="一塔" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[1].FirstInhibitor}"><TextBlock Text="首水晶" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[1].FirstBaron}"><TextBlock Text="首大龙" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                                <Border Padding="5,2" Margin="0,0,4,0" Background="Transparent" IsVisible="{Binding Teams[1].FirstDragon}"><TextBlock Text="首小龙" FontSize="9" FontWeight="SemiBold" Foreground="#888"/></Border>
+                            </WrapPanel>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Grid Grid.Row="3">
+                    <ItemsControl ItemsSource="{Binding TeamRed}"
+                                  ItemTemplate="{StaticResource ScoreboardRow}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <local:EqualHeightPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Col 1: Player detail -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*" Margin="8,0,16,0">
+            <Grid ColumnDefinitions="Auto,*" Margin="0,16,0,0" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock FontSize="18" FontWeight="Bold" Foreground="White"
+                               Text="{Binding QueueDisplayName}"/>
+                    <TextBlock FontSize="18" FontWeight="Bold" Foreground="White" Text=" - "/>
+                    <TextBlock FontSize="18" Foreground="#ccc"
+                               Text="{Binding MapDisplayName}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock FontSize="15" FontWeight="Bold"
+                               Text="{Binding Win, Converter={StaticResource WinToText}}"
+                               Foreground="{Binding Win, Converter={StaticResource WinToForeground}}"/>
+                    <TextBlock FontSize="14" Foreground="#888"
+                               Text="{Binding GameVersionDisplay}"/>
+                </StackPanel>
+            </Grid>
+            <Separator Grid.Row="1" Background="#2a2a3e" Height="1" Margin="0,8"/>
+            <Grid Grid.Row="2" RowDefinitions="*,*">
+                <!-- Top half: blue team player detail -->
+                <Grid Margin="0,0,0,8">
+                    <Border Padding="12" Background="#15152e"
+                            BorderBrush="#3a3a5c" BorderThickness="1"
+                            IsVisible="{Binding $parent[UserControl].SelectedBlue, Converter={StaticResource IsNull}}">
+                        <TextBlock Text="点击蓝队玩家行查看详情" Foreground="#666" FontSize="14"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ScrollViewer IsVisible="{Binding $parent[UserControl].SelectedBlue, Converter={StaticResource IsNotNull}}">
+                        <Border Padding="12" Background="#15152e"
+                                BorderBrush="#3a3a5c" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                 <TextBlock FontSize="16" FontWeight="Bold" Foreground="White">
+                                     <Run Text="{Binding $parent[UserControl].SelectedBlue.SummonerFullName}"/>
+                                     <Run Text=" ("/>
+                                     <Run Text="{Binding $parent[UserControl].SelectedBlue.ChampionName}"/>
+                                     <Run Text=")"/>
+                                 </TextBlock>
+                                 <TextBlock FontSize="12" Foreground="#888" Margin="0,0,0,4">
+                                     <Run Text="{Binding $parent[UserControl].SelectedBlue.LaneLabel}"/>
+                                     <Run Text=" · 级"/>
+                                     <Run Text="{Binding $parent[UserControl].SelectedBlue.Stats.ChampLevel}"/>
+                                 </TextBlock>
+                                 <TextBlock Text="伤害构成" FontSize="14" FontWeight="Bold" Foreground="#aaa"/>
+                                 <Border Height="16" ClipToBounds="True">
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="{Binding $parent[UserControl].SelectedBlue.PhysicalDamageProportion, Converter={StaticResource DoubleToGridLength}}"/>
+                                             <ColumnDefinition Width="{Binding $parent[UserControl].SelectedBlue.MagicDamageProportion, Converter={StaticResource DoubleToGridLength}}"/>
+                                             <ColumnDefinition Width="{Binding $parent[UserControl].SelectedBlue.TrueDamageProportion, Converter={StaticResource DoubleToGridLength}}"/>
+                                         </Grid.ColumnDefinitions>
+                                         <Border Grid.Column="0" Background="#c9a84c"/>
+                                         <Border Grid.Column="1" Background="#4a9eff"/>
+                                         <Border Grid.Column="2" Background="#aaaaaa"/>
+                                     </Grid>
+                                 </Border>
+                                 <Grid ColumnDefinitions="*,Auto">
+                                     <StackPanel Orientation="Horizontal" Spacing="12">
+                                         <StackPanel Orientation="Horizontal" Spacing="4">
+                                             <Border Width="8" Height="8" Background="#c9a84c"/>
+                                             <TextBlock Text="物理" Foreground="#999" FontSize="12"/>
+                                             <TextBlock Text="{Binding $parent[UserControl].SelectedBlue.Stats.PhysicalDamageDealtToChampions, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="12"/>
+                                         </StackPanel>
+                                         <StackPanel Orientation="Horizontal" Spacing="4">
+                                             <Border Width="8" Height="8" Background="#4a9eff"/>
+                                             <TextBlock Text="魔法" Foreground="#999" FontSize="12"/>
+                                             <TextBlock Text="{Binding $parent[UserControl].SelectedBlue.Stats.MagicDamageDealtToChampions, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="12"/>
+                                         </StackPanel>
+                                         <StackPanel Orientation="Horizontal" Spacing="4">
+                                             <Border Width="8" Height="8" Background="#aaaaaa"/>
+                                             <TextBlock Text="真实" Foreground="#999" FontSize="12"/>
+                                             <TextBlock Text="{Binding $parent[UserControl].SelectedBlue.Stats.TrueDamageDealtToChampions, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="12"/>
+                                         </StackPanel>
+                                     </StackPanel>
+                                     <TextBlock Grid.Column="1" Foreground="#ccc" FontSize="12">
+                                         <Run Text="{Binding $parent[UserControl].SelectedBlue.DamageFormatted, StringFormat={}{0:N0}}"/>
+                                         <Run Text=" 总计"/>
+                                     </TextBlock>
+                                 </Grid>
+                                 <TextBlock Text="扩展数据" FontSize="14" FontWeight="Bold" Foreground="#aaa" Margin="0,4,0,0"/>
+                                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+                                     <TextBlock Grid.Row="0" Text="对目标伤害" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedBlue.Stats.DamageDealtToObjectives, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="对塔伤害" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedBlue.Stats.DamageDealtToTurrets, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Text="自我减免" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedBlue.Stats.DamageSelfMitigated, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="治疗量" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedBlue.Stats.TotalHeal, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Text="控制时间" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedBlue.TimeCcFormatted}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="最长存活" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedBlue.LongestLivingFormatted}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Text="推塔数" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedBlue.Stats.TurretKills}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="推水晶数" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedBlue.Stats.InhibitorKills}" Foreground="#ccc" FontSize="11"/>
+                                 </Grid>
+                                 <TextBlock Text="符文" FontSize="14" FontWeight="Bold" Foreground="#aaa" Margin="0,4,0,0"/>
+                                 <StackPanel Spacing="6">
+                                     <StackPanel Orientation="Horizontal" Spacing="4">
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.PrimaryStyleIcon, Converter={StaticResource BytesToBitmap}}" Width="14" Height="14"/>
+                                         <TextBlock Text="{Binding $parent[UserControl].SelectedBlue.PrimaryStyleName}" Foreground="#ccc" FontSize="12" FontWeight="Bold"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.KeystoneRuneIcon, Converter={StaticResource BytesToBitmap}}" Width="16" Height="16" Margin="4,0,0,0"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.PerkIcons[1], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedBlue.PerkIcons[1], Converter={StaticResource IsNotNull}}"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.PerkIcons[2], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedBlue.PerkIcons[2], Converter={StaticResource IsNotNull}}"/>
+                                     </StackPanel>
+                                     <StackPanel Orientation="Horizontal" Spacing="4">
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.SecondaryStyleIcon, Converter={StaticResource BytesToBitmap}}" Width="14" Height="14"/>
+                                         <TextBlock Text="{Binding $parent[UserControl].SelectedBlue.SecondaryStyleName}" Foreground="#ccc" FontSize="12" FontWeight="Bold"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.PerkIcons[3], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedBlue.PerkIcons[3], Converter={StaticResource IsNotNull}}"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.PerkIcons[4], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedBlue.PerkIcons[4], Converter={StaticResource IsNotNull}}"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedBlue.PerkIcons[5], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedBlue.PerkIcons[5], Converter={StaticResource IsNotNull}}"/>
+                                     </StackPanel>
+                                 </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+                </Grid>
+                <!-- Bottom half: red team player detail -->
+                <Grid Grid.Row="1">
+                    <Border Padding="12" Background="#15152e"
+                            BorderBrush="#3a3a5c" BorderThickness="1"
+                            IsVisible="{Binding $parent[UserControl].SelectedRed, Converter={StaticResource IsNull}}">
+                        <TextBlock Text="点击红队玩家行查看详情" Foreground="#666" FontSize="14"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ScrollViewer IsVisible="{Binding $parent[UserControl].SelectedRed, Converter={StaticResource IsNotNull}}">
+                        <Border Padding="12" Background="#15152e"
+                                BorderBrush="#3a3a5c" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                 <TextBlock FontSize="16" FontWeight="Bold" Foreground="White">
+                                     <Run Text="{Binding $parent[UserControl].SelectedRed.SummonerFullName}"/>
+                                     <Run Text=" ("/>
+                                     <Run Text="{Binding $parent[UserControl].SelectedRed.ChampionName}"/>
+                                     <Run Text=")"/>
+                                 </TextBlock>
+                                 <TextBlock FontSize="12" Foreground="#888" Margin="0,0,0,4">
+                                     <Run Text="{Binding $parent[UserControl].SelectedRed.LaneLabel}"/>
+                                     <Run Text=" · 级"/>
+                                     <Run Text="{Binding $parent[UserControl].SelectedRed.Stats.ChampLevel}"/>
+                                 </TextBlock>
+                                 <TextBlock Text="伤害构成" FontSize="14" FontWeight="Bold" Foreground="#aaa"/>
+                                 <Border Height="16" ClipToBounds="True">
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="{Binding $parent[UserControl].SelectedRed.PhysicalDamageProportion, Converter={StaticResource DoubleToGridLength}}"/>
+                                             <ColumnDefinition Width="{Binding $parent[UserControl].SelectedRed.MagicDamageProportion, Converter={StaticResource DoubleToGridLength}}"/>
+                                             <ColumnDefinition Width="{Binding $parent[UserControl].SelectedRed.TrueDamageProportion, Converter={StaticResource DoubleToGridLength}}"/>
+                                         </Grid.ColumnDefinitions>
+                                         <Border Grid.Column="0" Background="#c9a84c"/>
+                                         <Border Grid.Column="1" Background="#4a9eff"/>
+                                         <Border Grid.Column="2" Background="#aaaaaa"/>
+                                     </Grid>
+                                 </Border>
+                                 <Grid ColumnDefinitions="*,Auto">
+                                     <StackPanel Orientation="Horizontal" Spacing="12">
+                                         <StackPanel Orientation="Horizontal" Spacing="4">
+                                             <Border Width="8" Height="8" Background="#c9a84c"/>
+                                             <TextBlock Text="物理" Foreground="#999" FontSize="12"/>
+                                             <TextBlock Text="{Binding $parent[UserControl].SelectedRed.Stats.PhysicalDamageDealtToChampions, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="12"/>
+                                         </StackPanel>
+                                         <StackPanel Orientation="Horizontal" Spacing="4">
+                                             <Border Width="8" Height="8" Background="#4a9eff"/>
+                                             <TextBlock Text="魔法" Foreground="#999" FontSize="12"/>
+                                             <TextBlock Text="{Binding $parent[UserControl].SelectedRed.Stats.MagicDamageDealtToChampions, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="12"/>
+                                         </StackPanel>
+                                         <StackPanel Orientation="Horizontal" Spacing="4">
+                                             <Border Width="8" Height="8" Background="#aaaaaa"/>
+                                             <TextBlock Text="真实" Foreground="#999" FontSize="12"/>
+                                             <TextBlock Text="{Binding $parent[UserControl].SelectedRed.Stats.TrueDamageDealtToChampions, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="12"/>
+                                         </StackPanel>
+                                     </StackPanel>
+                                     <TextBlock Grid.Column="1" Foreground="#ccc" FontSize="12">
+                                         <Run Text="{Binding $parent[UserControl].SelectedRed.DamageFormatted, StringFormat={}{0:N0}}"/>
+                                         <Run Text=" 总计"/>
+                                     </TextBlock>
+                                 </Grid>
+                                 <TextBlock Text="扩展数据" FontSize="14" FontWeight="Bold" Foreground="#aaa" Margin="0,4,0,0"/>
+                                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+                                     <TextBlock Grid.Row="0" Text="对目标伤害" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedRed.Stats.DamageDealtToObjectives, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="对塔伤害" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedRed.Stats.DamageDealtToTurrets, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Text="自我减免" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedRed.Stats.DamageSelfMitigated, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="治疗量" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedRed.Stats.TotalHeal, StringFormat={}{0:N0}}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Text="控制时间" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedRed.TimeCcFormatted}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="最长存活" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedRed.LongestLivingFormatted}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Text="推塔数" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding $parent[UserControl].SelectedRed.Stats.TurretKills}" Foreground="#ccc" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="推水晶数" Foreground="#999" FontSize="11"/>
+                                     <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding $parent[UserControl].SelectedRed.Stats.InhibitorKills}" Foreground="#ccc" FontSize="11"/>
+                                 </Grid>
+                                 <TextBlock Text="符文" FontSize="14" FontWeight="Bold" Foreground="#aaa" Margin="0,4,0,0"/>
+                                 <StackPanel Spacing="6">
+                                     <StackPanel Orientation="Horizontal" Spacing="4">
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.PrimaryStyleIcon, Converter={StaticResource BytesToBitmap}}" Width="14" Height="14"/>
+                                         <TextBlock Text="{Binding $parent[UserControl].SelectedRed.PrimaryStyleName}" Foreground="#ccc" FontSize="12" FontWeight="Bold"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.KeystoneRuneIcon, Converter={StaticResource BytesToBitmap}}" Width="16" Height="16" Margin="4,0,0,0"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.PerkIcons[1], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedRed.PerkIcons[1], Converter={StaticResource IsNotNull}}"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.PerkIcons[2], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedRed.PerkIcons[2], Converter={StaticResource IsNotNull}}"/>
+                                     </StackPanel>
+                                     <StackPanel Orientation="Horizontal" Spacing="4">
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.SecondaryStyleIcon, Converter={StaticResource BytesToBitmap}}" Width="14" Height="14"/>
+                                         <TextBlock Text="{Binding $parent[UserControl].SelectedRed.SecondaryStyleName}" Foreground="#ccc" FontSize="12" FontWeight="Bold"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.PerkIcons[3], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedRed.PerkIcons[3], Converter={StaticResource IsNotNull}}"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.PerkIcons[4], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedRed.PerkIcons[4], Converter={StaticResource IsNotNull}}"/>
+                                         <Image Source="{Binding $parent[UserControl].SelectedRed.PerkIcons[5], Converter={StaticResource BytesToBitmap}}" Width="14" Height="14" IsVisible="{Binding $parent[UserControl].SelectedRed.PerkIcons[5], Converter={StaticResource IsNotNull}}"/>
+                                     </StackPanel>
+                                 </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

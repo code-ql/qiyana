@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="using:qiyana.Converters"
+             xmlns:matchdata="using:qiyana.Models.MatchData"
+             xmlns:vm="using:qiyana.ViewModels"
+             x:Class="qiyana.Views.MatchHistoryList"
+             x:DataType="vm:MatchHistoryViewModel"
+             x:CompileBindings="False">
+    <UserControl.Resources>
+        <conv:WinToBackgroundConverter x:Key="WinToBackground"/>
+        <conv:SecondsToDurationConverter x:Key="SecondsToDuration"/>
+        <conv:EpochToRelativeTimeConverter x:Key="EpochToRelativeTime"/>
+        <conv:IsNotNullConverter x:Key="IsNotNull"/>
+        <conv:InvertBoolConverter x:Key="InvertBool"/>
+        <conv:BytesToBitmapConverter x:Key="BytesToBitmap"/>
+    </UserControl.Resources>
+    <Grid Name="MatchListContainer" Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="{Binding CurrentTab.ErrorMessage}"
+                   Foreground="#ff6b6b"
+                   IsVisible="{Binding CurrentTab.ErrorMessage, Converter={StaticResource IsNotNull}}"
+                   FontSize="13"/>
+
+        <ListBox Grid.Row="1"
+                 Name="MatchListBox"
+                 ItemsSource="{Binding CurrentTab.Matches}"
+                 SelectedItem="{Binding CurrentTab.SelectedMatch}"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 Padding="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 Loaded="MatchListBox_OnLoaded"
+                 x:CompileBindings="False">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0,2"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Background"
+                            Value="{Binding Win, Converter={StaticResource WinToBackground}}"/>
+                    <Setter Property="Template">
+                        <ControlTemplate>
+                            <Border Background="{TemplateBinding Background}"
+                                    Margin="{TemplateBinding Margin}"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter Content="{TemplateBinding Content}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter>
+                </Style>
+                <Style Selector="ListBoxItem:pointerover">
+                    <Setter Property="Background"
+                            Value="{Binding Win, Converter={StaticResource WinToBackground}, ConverterParameter=Highlight}"/>
+                </Style>
+                <Style Selector="ListBoxItem:selected">
+                    <Setter Property="Background"
+                            Value="{Binding Win, Converter={StaticResource WinToBackground}, ConverterParameter=Highlight}"/>
+                </Style>
+                <Style Selector="ListBoxItem:selected:pointerover">
+                    <Setter Property="Background"
+                            Value="{Binding Win, Converter={StaticResource WinToBackground}, ConverterParameter=Highlight}"/>
+                </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="matchdata:GameDetail">
+                    <Border Padding="12" Background="Transparent">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border Width="48" Height="48"
+                                    Background="#1a1a2e" VerticalAlignment="Center" ClipToBounds="True">
+                                <Image Source="{Binding ChampionIcon, Converter={StaticResource BytesToBitmap}}"
+                                       Width="48" Height="48" Stretch="UniformToFill"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock FontSize="15" FontWeight="Bold">
+                                    <Run Text="{Binding Kills}" Foreground="{Binding KillsForeground}"/>
+                                    <Run Text=" / " Foreground="#666"/>
+                                    <Run Text="{Binding Deaths}" Foreground="{Binding DeathsForeground}"/>
+                                    <Run Text=" / " Foreground="#666"/>
+                                    <Run Text="{Binding Assists}" Foreground="{Binding AssistsForeground}"/>
+                                </TextBlock>
+                                <TextBlock Foreground="#aaa" FontSize="12" Text="{Binding QueueDisplayName}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding Duration, Converter={StaticResource SecondsToDuration}}"
+                                           Foreground="#ccc" FontSize="13" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding Timestamp, Converter={StaticResource EpochToRelativeTime}}"
+                                           Foreground="#888" FontSize="11" HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ProgressBar Grid.Row="2"
+                     IsIndeterminate="True"
+                     IsVisible="{Binding CurrentTab.IsLoadingMore}"
+                     Height="3" Margin="0,4"/>
+
+        <TextBlock Grid.Row="3"
+                   Text="没有更多对局"
+                   Foreground="#666" FontSize="13"
+                   HorizontalAlignment="Center"
+                   IsVisible="{Binding CurrentTab.HasMore, Converter={StaticResource InvertBool}}"
+                   Margin="0,8"/>
+    </Grid>
+</UserControl>

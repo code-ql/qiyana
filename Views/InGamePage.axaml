@@ -1,0 +1,361 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:qiyana.ViewModels"
+             xmlns:models="using:qiyana.Models"
+             xmlns:matchdata="using:qiyana.Models.MatchData"
+             xmlns:conv="using:qiyana.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="600"
+             x:Class="qiyana.Views.InGamePage"
+             x:DataType="vm:InGameViewModel">
+    <UserControl.Resources>
+        <conv:LcuAssetConverter x:Key="LcuAsset"/>
+        <conv:IsNotNullConverter x:Key="IsNotNull"/>
+        <conv:WinToBackgroundConverter x:Key="WinToBackground"/>
+        <conv:InvertBoolConverter x:Key="InvertBool"/>
+        <conv:BytesToBitmapConverter x:Key="BytesToBitmap"/>
+        <conv:SecondsToDurationConverter x:Key="SecondsToDuration"/>
+        <conv:PercentToWidthConverter x:Key="PercentToWidth"/>
+
+        <!-- Single player card (used for both my team and enemy team) -->
+        <DataTemplate x:Key="PlayerCard" x:DataType="models:TeammateDisplayInfo">
+            <Border Background="#1e1e2e" BorderBrush="#2a2a3e" BorderThickness="1" Padding="0">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top" Margin="10,15,10,0" Spacing="6">
+                    <Grid ColumnDefinitions="70,*" ColumnSpacing="10">
+                        <Border Width="70" Height="70" Background="#3a3a5c" CornerRadius="4"
+                                ClipToBounds="True" VerticalAlignment="Center">
+                            <Image Source="{Binding ProfileIconPath, Converter={StaticResource LcuAsset}}"
+                                   Width="70" Height="70" Stretch="UniformToFill"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                                <Border Background="Transparent" PointerPressed="OnPlayerNamePointerPressed"
+                                        Cursor="Hand" Tag="{Binding}" VerticalAlignment="Center"
+                                        MinWidth="0">
+                                    <TextBlock FontSize="15" FontWeight="Bold" Foreground="White"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis">
+                                        <Run Text="{Binding SummonerName}" />
+                                        <Run Text="#" Foreground="#888" />
+                                        <Run Text="{Binding TagLine}" Foreground="#888" />
+                                    </TextBlock>
+                                </Border>
+                                <Border Grid.Column="1" Padding="4,1" Background="#2a5a9e" CornerRadius="3"
+                                        IsVisible="{Binding IsLocalPlayer}" VerticalAlignment="Center">
+                                    <TextBlock Text="我" FontSize="10" Foreground="White" FontWeight="Bold" />
+                                </Border>
+                                <Border Grid.Column="2" Padding="6,2" Background="#5a2a2a" CornerRadius="3"
+                                        IsVisible="{Binding IsAutofilled}" VerticalAlignment="Center">
+                                    <TextBlock Text="补位" FontSize="11" Foreground="#ff6b6b" FontWeight="Bold" />
+                                </Border>
+                                <Border Grid.Column="3" Padding="5,1" Background="#252540" CornerRadius="3"
+                                        IsVisible="{Binding HasMatchData}" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SkillScoreText}" FontSize="11" Foreground="#ffd700" FontWeight="Bold" />
+                                </Border>
+                                <Border Grid.Column="4" Width="22" Height="22" Background="#333" CornerRadius="3" VerticalAlignment="Center">
+                                    <Path Data="{Binding PositionGeometry}" Fill="#ccc" Stretch="Uniform" Margin="2"/>
+                                </Border>
+                            </Grid>
+                            <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <Border Width="16" Height="16" Background="#15152e" CornerRadius="2" ClipToBounds="True"
+                                        ToolTip.Tip="{Binding Spell1Name}">
+                                    <Image Source="{Binding Spell1IconPath, Converter={StaticResource LcuAsset}}" Width="16" Height="16"/>
+                                </Border>
+                                <Border Grid.Column="1" Padding="5,1" Background="#252540" CornerRadius="3"
+                                        IsVisible="{Binding SoloQueue, Converter={StaticResource IsNotNull}}"
+                                        BorderBrush="{Binding SoloColor}" BorderThickness="1">
+                                    <TextBlock Text="{Binding SoloDisplay}" FontSize="11" Foreground="#ccc" />
+                                </Border>
+                                <Border Grid.Column="2" Padding="5,1" Background="#252540" CornerRadius="3"
+                                        IsVisible="{Binding FlexQueue, Converter={StaticResource IsNotNull}}"
+                                        BorderBrush="{Binding FlexColor}" BorderThickness="1">
+                                    <TextBlock Text="{Binding FlexDisplay}" FontSize="11" Foreground="#ccc" />
+                                </Border>
+                                <Border Grid.Row="1" Width="16" Height="16" Background="#15152e" CornerRadius="2" ClipToBounds="True"
+                                        ToolTip.Tip="{Binding Spell2Name}">
+                                    <Image Source="{Binding Spell2IconPath, Converter={StaticResource LcuAsset}}" Width="16" Height="16"/>
+                                </Border>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                           Text="{Binding ChampionDisplay}" FontSize="13" Foreground="#aaa"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center"
+                                IsVisible="{Binding HasMatchData}">
+                        <Border Padding="6,2" Background="#252540" CornerRadius="3">
+                            <TextBlock FontSize="12" Foreground="#ccc">
+                                <Run Text="{Binding Wins}" />
+                                <Run Text="胜" Foreground="#4caf50" />
+                                <Run Text="  " />
+                                <Run Text="{Binding Losses}" />
+                                <Run Text="负" Foreground="#ff4a4a" />
+                            </TextBlock>
+                        </Border>
+                        <TextBlock FontSize="12" Foreground="#aaa" VerticalAlignment="Center">
+                            <Run Text="{Binding KdaText}" Foreground="#ffd700" FontWeight="Bold" />
+                            <Run Text=" (" Foreground="#888" />
+                            <Run Text="{Binding Kills}" Foreground="#4a9eff" />
+                            <Run Text=" / " Foreground="#666" />
+                            <Run Text="{Binding Deaths}" Foreground="#ff4a4a" />
+                            <Run Text=" / " Foreground="#666" />
+                            <Run Text="{Binding Assists}" Foreground="#4a9eff" />
+                            <Run Text=")" Foreground="#888" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+                <Grid>
+                    <Border IsVisible="{Binding HasMatchData}"
+                            Background="#1a1a2e" CornerRadius="4" Padding="4"
+                            BorderBrush="#2a2a3e" BorderThickness="1"
+                            Margin="10,6,10,10">
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding RecentGames}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="matchdata:GameDetail">
+                                        <Border Padding="5,1" Margin="0,1" CornerRadius="3"
+                                                Background="{Binding Win, Converter={StaticResource WinToBackground}}">
+                                            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="4">
+                                                <Border Width="22" Height="22" Background="#1a1a2e" CornerRadius="2"
+                                                        ClipToBounds="True" VerticalAlignment="Center">
+                                                    <Image Source="{Binding ChampionIcon, Converter={StaticResource BytesToBitmap}}"
+                                                           Width="22" Height="22" Stretch="UniformToFill"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                                    <Border Width="12" Height="12" Background="#1a1a2e" CornerRadius="1"
+                                                            ClipToBounds="True">
+                                                        <Image Source="{Binding CurrentParticipant.Spell1Icon, Converter={StaticResource BytesToBitmap}}"
+                                                               Width="12" Height="12"/>
+                                                    </Border>
+                                                    <Border Width="12" Height="12" Background="#1a1a2e" CornerRadius="1"
+                                                            ClipToBounds="True">
+                                                        <Image Source="{Binding CurrentParticipant.Spell2Icon, Converter={StaticResource BytesToBitmap}}"
+                                                               Width="12" Height="12"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Foreground="White" FontSize="12"
+                                                           FontWeight="Bold" VerticalAlignment="Center">
+                                                    <Run Text="{Binding Kills}" Foreground="#4a9eff"/>
+                                                    <Run Text=" / " Foreground="#666"/>
+                                                    <Run Text="{Binding Deaths}" Foreground="#ff4a4a"/>
+                                                    <Run Text=" / " Foreground="#666"/>
+                                                    <Run Text="{Binding Assists}" Foreground="#4a9eff"/>
+                                                </TextBlock>
+                                                <TextBlock Grid.Column="3" Foreground="#ccc" FontSize="11"
+                                                           VerticalAlignment="Center"
+                                                           Text="{Binding Duration, Converter={StaticResource SecondsToDuration}}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                    <TextBlock Text="暂无排位记录" FontSize="13" Foreground="#555"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding HasMatchData, Converter={StaticResource InvertBool}}" />
+                </Grid>
+            </DockPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="*,*" ColumnSpacing="6" RowSpacing="4">
+
+            <Grid Grid.Column="0" Grid.ColumnSpan="5" Grid.RowSpan="2">
+                <Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="*,Auto,*" ColumnSpacing="6" RowSpacing="4"
+                      IsVisible="{Binding HasData}">
+                    <!-- Row 0: My Team -->
+                    <ContentControl Grid.Column="0" Content="{Binding MyPlayers[0]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="1" Content="{Binding MyPlayers[1]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="2" Content="{Binding MyPlayers[2]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="3" Content="{Binding MyPlayers[3]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="4" Content="{Binding MyPlayers[4]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <!-- Row 1: Win Rate Section -->
+                    <Border Grid.Row="1" Grid.ColumnSpan="5" Background="#1a1a2e" BorderBrush="#2a2a3e" BorderThickness="1"
+                            CornerRadius="6" Padding="8,4" IsVisible="{Binding HasData}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <!-- Left: My Team Summary -->
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border Padding="6,2" Background="#252540" CornerRadius="3">
+                                    <TextBlock FontSize="12" Foreground="#ffd700" FontWeight="Bold"
+                                               Text="{Binding MyTeamAverageSkillScoreText}" />
+                                </Border>
+                                <TextBlock FontSize="12" Foreground="#aaa" VerticalAlignment="Center"
+                                           Text="{Binding MyTeamTotalKda}" />
+                                <ItemsControl ItemsSource="{Binding MyTeamChampionIcons}" Margin="0,0,4,0">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="22" Height="22" Background="#1a1a2e" CornerRadius="2"
+                                                    ClipToBounds="True">
+                                                <Image Source="{Binding Converter={StaticResource BytesToBitmap}}"
+                                                       Width="22" Height="22" Stretch="UniformToFill" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            <!-- Center: Win Rate -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
+                                        Spacing="6" VerticalAlignment="Center">
+                                <TextBlock FontSize="18" Foreground="#ffd700" FontWeight="Bold"
+                                           Text="{Binding TeamPredictedWinRateText}" />
+                                <Border Width="120" Height="10" Background="#252540" CornerRadius="4"
+                                        VerticalAlignment="Center">
+                                    <Border Width="{Binding TeamPredictedWinRate, Converter={StaticResource PercentToWidth}, ConverterParameter=120}"
+                                            Background="#ffd700" CornerRadius="4" HorizontalAlignment="Left" />
+                                </Border>
+                                <Button Command="{Binding GenerateAiWinRateCommand}" Content="AI"
+                                        Padding="6,1" Background="#1e1e2e" Foreground="#ffd700"
+                                        FontWeight="Bold" FontSize="11" BorderThickness="0"
+                                        IsVisible="{Binding HasData}" VerticalAlignment="Center" />
+                                <TextBlock FontSize="13" Foreground="#4a9eff" FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding AiWinRateText}" />
+                            </StackPanel>
+                            <!-- Right: Enemy Team Summary -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ItemsControl ItemsSource="{Binding EnemyTeamChampionIcons}" Margin="0,0,4,0">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="22" Height="22" Background="#1a1a2e" CornerRadius="2"
+                                                    ClipToBounds="True">
+                                                <Image Source="{Binding Converter={StaticResource BytesToBitmap}}"
+                                                       Width="22" Height="22" Stretch="UniformToFill" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock FontSize="12" Foreground="#aaa" VerticalAlignment="Center"
+                                           Text="{Binding EnemyTeamTotalKda}" />
+                                <Border Padding="6,2" Background="#252540" CornerRadius="3">
+                                    <TextBlock FontSize="12" Foreground="#ff6b6b" FontWeight="Bold"
+                                               Text="{Binding EnemyTeamAverageSkillScoreText}" />
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <!-- Row 2: Enemy Team -->
+                    <ContentControl Grid.Column="0" Grid.Row="2" Content="{Binding EnemyPlayers[0]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="1" Grid.Row="2" Content="{Binding EnemyPlayers[1]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="2" Grid.Row="2" Content="{Binding EnemyPlayers[2]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="3" Grid.Row="2" Content="{Binding EnemyPlayers[3]}" ContentTemplate="{StaticResource PlayerCard}" />
+                    <ContentControl Grid.Column="4" Grid.Row="2" Content="{Binding EnemyPlayers[4]}" ContentTemplate="{StaticResource PlayerCard}" />
+                </Grid>
+
+                <Border Background="#1e1e2e" BorderBrush="#2a2a3e" BorderThickness="1" CornerRadius="6"
+                        IsVisible="{Binding HasData, Converter={StaticResource InvertBool}}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                        <TextBlock Text="等待进入游戏中" FontSize="22" Foreground="#ccc" FontWeight="Bold"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="当前阶段暂未提供双方玩家数据，进入游戏后会自动加载战绩。"
+                                   FontSize="14" Foreground="#888" TextWrapping="Wrap" Width="360"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="{Binding CurrentPhase}" FontSize="13" Foreground="#4a9eff"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Column 5: Counter A (full height) -->
+            <Border Grid.Column="5" Grid.RowSpan="2" Background="#1e1e2e" CornerRadius="6" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <Border DockPanel.Dock="Top" Background="#3a3a5c" CornerRadius="6,6,0,0" Padding="10" HorizontalAlignment="Stretch">
+                        <TextBlock Text="{Binding CurrentPhase}" FontSize="18" Foreground="#4a9eff" FontWeight="Bold" HorizontalAlignment="Center" />
+                    </Border>
+                    <Grid Margin="12" RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="8">
+                        <TextBlock Text="战绩模式" FontSize="16" Foreground="#ccc" FontWeight="Bold" />
+                        <ComboBox Grid.Row="1" ItemsSource="{Binding MatchQueueFilters}"
+                                  SelectedItem="{Binding SelectedMatchQueueFilter}"
+                                  HorizontalAlignment="Stretch"
+                                  Background="#252540"
+                                  Foreground="White">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:MatchQueueFilter">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Grid.Row="2" Text="选择后会刷新双方玩家近10场战绩和评分。"
+                                   Foreground="#888" FontSize="12" TextWrapping="Wrap" />
+                        <Border Grid.Row="3" Background="#15152a" Padding="10"
+                                IsVisible="{Binding IsLoadingMatchHistory}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{Binding MatchHistoryLoadingText}" Foreground="#ccc" FontSize="12" />
+                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding MatchHistoryLoadingProgress}" Height="6" />
+                            </StackPanel>
+                        </Border>
+                        <Grid Grid.Row="4" RowDefinitions="Auto,*" RowSpacing="8">
+                        <Border Background="#15152a" Padding="10">
+                            <StackPanel Spacing="9">
+                                <TextBlock Text="胜率预测" FontSize="15" Foreground="White" FontWeight="Bold" />
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Fill="#252540" Stroke="#33334f" StrokeThickness="8" />
+                                    <Ellipse Width="88" Height="88" Fill="#1e1e2e" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding TeamPredictedWinRateText}" FontSize="24" Foreground="#ffd700"
+                                               FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                    <TextBlock Text="胜率" Foreground="#aaa" FontSize="12" VerticalAlignment="Center" />
+                                    <Border Grid.Column="1" Width="110" Height="8" Background="#252540" HorizontalAlignment="Left">
+                                        <Border Width="{Binding TeamPredictedWinRate, Converter={StaticResource PercentToWidth}, ConverterParameter=110}"
+                                                Background="#ffd700" HorizontalAlignment="Left" />
+                                    </Border>
+                                </Grid>
+                                <StackPanel Spacing="3">
+                                    <TextBlock Foreground="#888" FontSize="12">
+                                        <Run Text="己方均分 " />
+                                        <Run Text="{Binding MyTeamAverageSkillScoreText}" Foreground="#ffd700" FontWeight="Bold" />
+                                    </TextBlock>
+                                    <TextBlock Foreground="#888" FontSize="12">
+                                        <Run Text="敌方均分 " />
+                                        <Run Text="{Binding EnemyTeamAverageSkillScoreText}" Foreground="#ff6b6b" FontWeight="Bold" />
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock Text="有双方数据时按评分差预测，否则按己方状态预测。"
+                                           Foreground="#666" FontSize="11" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Row="1" Background="#15152a">
+                            <DockPanel LastChildFill="True">
+                                <Border DockPanel.Dock="Top" Background="#252540" Padding="10,8">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <TextBlock Text="团队评价" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <Button Grid.Column="1" Content="AI" Command="{Binding GenerateAiMatchupReviewCommand}"
+                                                Padding="8,2" Background="#1e1e2e" Foreground="#ffd700" FontWeight="Bold" />
+                                    </Grid>
+                                </Border>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel Spacing="7" Margin="10">
+                                        <TextBlock Text="{Binding AiMatchupStatusText}" Foreground="#888" FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="团队评价" Foreground="#ffd700" FontSize="12" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding AiTeamReviewSummary}" Foreground="#ddd" FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="AI胜率预测" Foreground="#ffd700" FontSize="12" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding AiTeamWinRatePrediction}" Foreground="#ddd" FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="团队围绕哪个玩家打胜率最高" Foreground="#ffd700" FontSize="12" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding AiTeamFocusPlayer}" Foreground="#ddd" FontSize="12" TextWrapping="Wrap" />
+                                        <TextBlock Text="需要警惕敌方的哪个选手" Foreground="#ffd700" FontSize="12" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding AiEnemyThreat}" Foreground="#ddd" FontSize="12" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+                        </Grid>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+        </Grid>
+</UserControl>

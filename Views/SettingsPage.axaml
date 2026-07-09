@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:qiyana.ViewModels"
+             xmlns:gd="using:qiyana.Models.GameData"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="qiyana.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="16">
+            <TextBlock Text="设置" FontSize="24" FontWeight="Bold"/>
+            <Separator Margin="0,0,0,8"/>
+
+            <CheckBox IsChecked="{Binding AutoAcceptMatch}" Content="自动接受对局"/>
+
+            <Separator Margin="0,8"/>
+            <TextBlock Text="自动选英雄" FontSize="18" FontWeight="Bold"/>
+            <CheckBox IsChecked="{Binding AutoSelectEnabled}" Content="启用自动选英雄"/>
+
+            <Separator Margin="0,8"/>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="自动 Pick 英雄" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <AutoCompleteBox ItemsSource="{Binding AllChampions}"
+                                 PlaceholderText="英雄搜索..."
+                                 x:Name="PickChampionAutoComplete"
+                                 Width="200">
+                    <AutoCompleteBox.ItemTemplate>
+                        <DataTemplate x:DataType="gd:ChampionSummary">
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </AutoCompleteBox.ItemTemplate>
+                </AutoCompleteBox>
+                <ItemsControl ItemsSource="{Binding PickChampionItems}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="4"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ChampionSelectItem">
+                            <Button Content="{Binding DisplayName}" Padding="8,2"
+                                    Click="OnPickRemoveClick"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="最多 3 个" FontSize="11" Foreground="Gray" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="自动 Ban 英雄" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <AutoCompleteBox ItemsSource="{Binding AllChampions}"
+                                 PlaceholderText="英雄搜索..."
+                                 x:Name="BanChampionAutoComplete"
+                                 Width="200">
+                    <AutoCompleteBox.ItemTemplate>
+                        <DataTemplate x:DataType="gd:ChampionSummary">
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </AutoCompleteBox.ItemTemplate>
+                </AutoCompleteBox>
+                <ItemsControl ItemsSource="{Binding BanChampionItems}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="4"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ChampionSelectItem">
+                            <Button Content="{Binding DisplayName}" Padding="8,2"
+                                    Click="OnBanRemoveClick"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="最多 3 个" FontSize="11" Foreground="Gray" VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

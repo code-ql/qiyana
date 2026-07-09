@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="using:qiyana.Converters"
+             xmlns:local="using:qiyana.Views"
+             xmlns:vm="using:qiyana.ViewModels"
+             x:Class="qiyana.Views.MatchDetailPanel"
+             x:DataType="vm:MatchHistoryViewModel"
+             x:CompileBindings="False">
+    <UserControl.Resources>
+        <conv:InvertBoolConverter x:Key="InvertBool"/>
+        <conv:IsNotNullConverter x:Key="IsNotNull"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid IsVisible="{Binding CurrentTab.ShowDetailPanel}">
+            <local:ScoreboardPanel DataContext="{Binding CurrentTab.SelectedDetail}"
+                                   PlayerNameClicked="OnScoreboardPlayerNameClicked" />
+        </Grid>
+        <Grid Background="#1a1a2e"
+              IsVisible="{Binding CurrentTab.ShowDetailPanel, Converter={StaticResource InvertBool}}">
+            <TextBlock Text="选择一个对局查看详情" Foreground="#666" FontSize="16"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</UserControl>
